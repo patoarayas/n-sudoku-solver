@@ -8,16 +8,16 @@
 #include "Sudoku.h"
 
 Sudoku::Sudoku(int size) : size(size) {
-    this->squareSize = sqrt(size);
-    this->grid = new int*[size];
+    this->boxSize = sqrt(size);
+    this->grid = new Cell*[size];
 
     for(int i = 0; i<size;++i){
-        grid[i] = new int[size];
+        grid[i] = new Cell[size];
     }
 
     for(int i= 0;i<size;++i){
         for (int j = 0; j < size; ++j) {
-            grid[i][j] = i;
+            grid[i][j] = Cell();
         }
     }
 }
@@ -30,9 +30,9 @@ Sudoku::~Sudoku() {
 
 std::ostream &operator<<(std::ostream &os, const Sudoku &sudoku) {
     for (int i = 0; i < sudoku.size ; ++i) {
-        os <<"|";
+
         for (int j = 0; j < sudoku.size ; ++j) {
-            os << sudoku.grid[i][j]<<"|";
+            os << sudoku.grid[i][j];
         }
         os << std::endl;
     }
@@ -52,7 +52,7 @@ void Sudoku::importFromFile(std::string name) {
             for (int i = 0; i < size ; ++i) {
                 std::string val;
                 getline(file,val,',');
-                this->grid[row][i] = std::stoi(val);
+                this->grid[row][i] = Cell(std::stoi(val),size);
             }
             row++;
 
@@ -68,26 +68,37 @@ void Sudoku::importFromFile(std::string name) {
 bool Sudoku::checkCell(const int &row, const int &col, const int &val) {
     // Check for a repeated value at row and col.
     for(int i = 0; i< this->size;++i) {
-        if (this->grid[row][i] == val) {
+        if (this->grid[row][i].getValue() == val) {
             return false;
         }
-        if (this->grid[i][col] == val) {
+        if (this->grid[i][col].getValue() == val) {
             return false;
         }
     }
     // Check for repeated values whithin the cell's square.
-    int row_squareStart = row/this->squareSize;
-    int col_squareStart = col/this->squareSize;
+    int row_boxStart = row / this->boxSize;
+    int col_boxStart = col / this->boxSize;
 
-    for (int i = row_squareStart; i <row_squareStart+this->squareSize ; ++i) {
-        for (int j = col_squareStart; j <col_squareStart+this->squareSize ; ++j) {
-            if(this->grid[i][j] == val){
+    for (int i = row_boxStart; i < row_boxStart + this->boxSize ; ++i) {
+        for (int j = col_boxStart; j < col_boxStart + this->boxSize ; ++j) {
+            if(this->grid[i][j].getValue() == val){
                 return false;
             }
         }
     }
 
     return true;
+}
+
+bool Sudoku::solve(const int& workers) {
+
+    // 1. Look for potential answers for each cell.
+
+    // 2. Search an empty and unblocked cell with less potential answers.
+
+
+    // No solution
+    return false;
 }
 
 
