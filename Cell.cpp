@@ -3,16 +3,21 @@
 //
 
 #include <iostream>
+#include <string>
 #include "Cell.h"
 
 
-Cell::Cell(const int &val, const int& sudokuSize) {
+Cell::Cell(const int &val,const int &row,const int &col, const int& sudokuSize) {
     this->value = val;
+    this->row = row;
+    this->col = col;
     this->possibleValues = std::vector<int>(sudokuSize);
-    this->cantPossibleValues = sudokuSize;
+    this->cantPossibleValues = 0;
+    /*
     for (int i = 0; i < sudokuSize; ++i) {
         possibleValues[i] = i+1;
     }
+     */
 
 }
 
@@ -45,8 +50,17 @@ int Cell::getCantPossibleValues() const {
 
 void Cell::setPossibleValue(const int &val) {
 
-    this->possibleValues.push_back(val);
+    this->possibleValues[cantPossibleValues] = val;
     this->cantPossibleValues++;
+}
+
+std::string Cell::cellInfo() {
+    std::string str = "ROW: "+std::to_string(this->row)+" COL: "+std::to_string(this->col)+" VALUE: "+std::to_string(this->value)+" POSSIBLE VALUES["+std::to_string(this->cantPossibleValues)+"]: ";
+
+    for (int i = 0; i < this->cantPossibleValues; ++i) {
+        str += std::to_string(possibleValues[i])+", ";
+    }
+    return str;
 }
 
 

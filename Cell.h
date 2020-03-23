@@ -12,13 +12,16 @@
 class Cell {
 
 private:
+
+    int row;
+    int col;
     int value;
     std::vector<int> possibleValues;
     int cantPossibleValues;
 
 public:
     Cell();
-    Cell(const int &val, const int &sudokuSize);
+    Cell(const int &val,const int &row,const int &col, const int &sudokuSize);
     virtual ~Cell();
     friend std::ostream &operator<<(std::ostream &os, const Cell &cell);
 
@@ -31,6 +34,8 @@ public:
     const std::vector<int> &getPossibleValues() const;
 
     int getCantPossibleValues() const;
+
+    std::string cellInfo();
 
 };
 

@@ -18,6 +18,8 @@ public:
     int size;
     int boxSize;
     Cell **grid;
+    Cell **array;
+    int emptyCells;
 
     /**
      * Single argument constructor
@@ -46,15 +48,38 @@ public:
      */
     bool checkCell(const int &row, const int &col, const int &val);
 
-    bool solve(const int& workers);
     /**
      * Import a sudoku board from a file.
      * @param name : the sufix of the file.
      * All files are named like this -> {size}_{name}.csv. where size is the size of the sudoku grid.
      */
-    void importFromFile(std::string name);
+    void importFromFile(const std::string& name);
 
+    /** Solve the sudoku.
+     *
+     * @param threads Number of thread to be used.
+     * @return whether the sudoku could be solved.
+     */
+    bool solve(const int& threads);
 
+    /**
+     * Implement recursive function to solve the sudoku.
+     * Fill an empty cell with a valid value and call itself until grid is complete.
+     * @return  bool. If there are no valid options to fill the cell returns false.
+     */
+    bool backtrack();
+
+    /**
+     * Check if every cell in the grid has a value (distinct to 0)
+     * @return bool
+     */
+    bool gridIsFull();
+
+    /**
+     * Validate if a sudoku solution is valid.
+     * @return bool
+     */
+    bool validate();
 };
 
 
