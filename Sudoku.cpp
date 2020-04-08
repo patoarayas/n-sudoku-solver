@@ -28,6 +28,26 @@ Sudoku::Sudoku(int size) : size(size) {
 
 }
 
+Sudoku::Sudoku(const Sudoku &sudoku) {
+    this->boxSize = sudoku.boxSize;
+    this->size = sudoku.size;
+
+    this->grid = new Cell *[size];
+
+    this->array = new Cell *[size * size];
+    this->emptyCells = 0;
+
+    for (int i = 0; i < size; ++i) {
+        grid[i] = new Cell[size];
+    }
+
+    for (int i = 0; i < size; ++i) {
+        for (int j = 0; j < size; ++j) {
+            grid[i][j] = Cell(sudoku.grid[i][j].getValue(),i,j,size);
+        }
+    }
+}
+
 Sudoku::~Sudoku() {
     for (int i = 0; i < size; ++i)
         delete[] grid[i];
@@ -102,17 +122,15 @@ bool Sudoku::checkCell(const int &row, const int &col, const int &val) {
     return true;
 }
 
-bool Sudoku::solve(const int &threads) {
-    // Set max number of thread to use
-    omp_set_num_threads(threads);
+bool Sudoku::solve() {
 
     // 1. Look for potential answers for each cell.
-//#pragma omp parallel for default(none) //reduction(+: emptyCells)
+
     for (int i = 0; i < size; ++i) {
         for (int j = 0; j < size; ++j) {
             if (grid[i][j].getValue() == 0) {
                 // Is an empty cell. Check possible values.
-                emptyCells++;
+                //emptyCells++;
                 for (int k = 1; k <= size; ++k) {
                     if (checkCell(i, j, k)) {
                         // This k value can be placed in the grid. Add to cell possible values array.
@@ -122,6 +140,7 @@ bool Sudoku::solve(const int &threads) {
             }
         }
     }
+
     /* Log
     {
         // Print posible answers.
@@ -134,28 +153,28 @@ bool Sudoku::solve(const int &threads) {
             }
         }
 
-        for (int l = 0; l < size * size; ++l) {
+        for (int l = 0; l < emptyCells; ++l) {
             std::cout << "ARRAY-> " << array[l]->cellInfo() << std::endl;
         }
-    }
-     */
+    }*/
 
-    // 2. Search an empty and unblocked cell with less potential answers.
     return backtrack();
-
 }
 
 bool Sudoku::backtrack() {
     if (gridIsFull()) {
         return true;
     }
+
     for (int i = 0; i < size; ++i) {
         for (int j = 0; j < size; ++j) {
             // If cell is empty
             if (grid[i][j].getValue() == 0) {
                 // For every empty value
                 for (int k = 0; k < grid[i][j].getCantPossibleValues(); ++k) {
+
                     if (checkCell(i, j, grid[i][j].getPossibleValues().at(k))) {
+
                         grid[i][j].setValue(grid[i][j].getPossibleValues().at(k));
                         if (backtrack()) {
                             return true;
@@ -172,6 +191,7 @@ bool Sudoku::backtrack() {
 }
 
 bool Sudoku::gridIsFull() {
+
     for (int i = 0; i < this->size; ++i) {
         for (int j = 0; j < this->size; ++j) {
             if (this->grid[i][j].getValue() == 0) {
@@ -179,12 +199,13 @@ bool Sudoku::gridIsFull() {
             }
         }
     }
+
     return true;
 }
 
 bool Sudoku::validate() {
 
-    if(!gridIsFull()){
+    if (!gridIsFull()) {
         return false;
     }
 
@@ -197,10 +218,10 @@ bool Sudoku::validate() {
             int val = grid[l][m].getValue();
             for (int i = 0; i < size; ++i) {
 
-                if (grid[l][i].getValue() == val && i!=m) {
+                if (grid[l][i].getValue() == val && i != m) {
                     return false;
                 }
-                if (this->grid[i][m].getValue() == val && i!=l) {
+                if (this->grid[i][m].getValue() == val && i != l) {
                     return false;
                 }
             }
@@ -210,7 +231,7 @@ bool Sudoku::validate() {
 
             for (int i = row_boxStart; i < row_boxStart + this->boxSize; ++i) {
                 for (int j = col_boxStart; j < col_boxStart + this->boxSize; ++j) {
-                    if(i!=l && j!=m) {
+                    if (i != l && j != m) {
                         if (this->grid[i][j].getValue() == val) {
                             return false;
                         }
@@ -221,6 +242,87 @@ bool Sudoku::validate() {
     }
     return true;
 }
+
+bool Sudoku::solve_parallel(const int &threads) {
+    // Set max number of thread to use
+    omp_set_num_threads(threads);
+
+    // 1. Look for potential answers for each cell.
+#pragma omp parallel for default(none)
+    for (int i = 0; i < size; ++i) {
+        for (int j = 0; j < size; ++j) {
+            if (grid[i][j].getValue() == 0) {
+                // Is an empty cell. Check possible values.
+                for (int k = 1; k <= size; ++k) {
+                    if (checkCell(i, j, k)) {
+                        // This k value can be placed in the grid. Add to cell possible values array.
+                        grid[i][j].setPossibleValue(k);
+                    }
+                }
+            }
+        }
+    }
+
+    /* Log
+    {
+        // Print posible answers.
+        for (int i = 0; i < size; ++i) {
+            for (int j = 0; j < size; ++j) {
+                if (grid[i][j].getValue() == 0) {
+                    std::cout << grid[i][j].cellInfo() << std::endl;
+                }
+
+            }
+        }
+
+        for (int l = 0; l < emptyCells; ++l) {
+            std::cout << "ARRAY-> " << array[l]->cellInfo() << std::endl;
+        }
+    }*/
+    return backtrack();
+}
+
+void Sudoku::pBacktrack(Sudoku &sudoku) {
+
+    if (gridIsFull()) {
+        std::cout << sudoku;
+    }
+
+    for (int i = 0; i < size; ++i) {
+        for (int j = 0; j < size; ++j) {
+            // If cell is empty
+            if (grid[i][j].getValue() == 0) {
+                // For every empty value
+#pragma omp parallel for default(none) shared(i,j,sudoku)
+                for (int k = 0; k < grid[i][j].getCantPossibleValues(); ++k) {
+                    // For every possible value create a sudoku board and solve:
+                    if (checkCell(i, j, grid[i][j].getPossibleValues().at(k))) {
+                        // create sudoku
+                        Sudoku newSudoku(sudoku);
+                        sudoku.grid[i][j].setValue(this->grid[i][j].getPossibleValues().at(k));
+
+                        pBacktrack(newSudoku);
+                    }
+                }
+
+            }
+        }
+    }
+}
+
+bool Sudoku::sp(const int &threads) {
+
+#pragma parallel section
+    return false;
+}
+
+
+
+
+
+
+
+
 
 
 

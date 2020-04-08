@@ -26,6 +26,8 @@ public:
      */
     explicit Sudoku(int size);
 
+    Sudoku(const Sudoku &sudoku);
+
     /**
      * Destructor
      */
@@ -53,14 +55,13 @@ public:
      * @param name : the sufix of the file.
      * All files are named like this -> {size}_{name}.csv. where size is the size of the sudoku grid.
      */
-    void importFromFile(const std::string& name);
+    void importFromFile(const std::string &name);
 
-    /** Solve the sudoku.
-     *
-     * @param threads Number of thread to be used.
+    /**
+     * Solve the sudoku.
      * @return whether the sudoku could be solved.
      */
-    bool solve(const int& threads);
+    bool solve();
 
     /**
      * Implement recursive function to solve the sudoku.
@@ -80,6 +81,14 @@ public:
      * @return bool
      */
     bool validate();
+
+    bool solve_parallel(const int &threads);
+
+    bool sp(const int &threads);
+
+    void pBacktrack(Sudoku &sudoku);
+
+
 };
 
 
